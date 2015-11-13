@@ -3,16 +3,17 @@
   "version": "1.0.0",
   "description": "Emit latest event to new observers",
   "main": "dist/hold.js",
-  "files": ["dist/hold.js"],
+  "files": [
+    "dist/hold.js"
+  ],
   "scripts": {
     "build-dist": "mkdir -p dist && rollup -e most/lib/source/MulticastSource src/hold.js | babel --presets es2015 --plugins transform-es2015-modules-umd --module-id '@most/hold' -o dist/hold.js",
     "build": "npm run build-dist && uglifyjs dist/hold.js -o dist/hold.min.js",
     "prepublish": "npm run build",
     "preversion": "npm run build",
-    "test-main": "istanbul cover --root src _mocha",
-    "check-coverage": "istanbul check-coverage --statements 100 --branches 100 --lines 100 --functions 100 coverage/coverage*.json",
+    "unit-test": "mocha -r babel-register",
     "lint": "jscs -x src && jsinspect src && eslint src",
-    "test": "npm run lint && npm run build && npm run test-main && npm run check-coverage"
+    "test": "npm run lint && npm run unit-test"
   },
   "keywords": [
     "most",
@@ -24,7 +25,9 @@
   "author": "brian@hovercraftstudios.com",
   "license": "MIT",
   "devDependencies": {
+    "assert": "^1.3.0",
     "babel-cli": "^6.1.18",
+    "babel-core": "^6.1.20",
     "babel-eslint": "^4.1.5",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.1.18",
     "babel-preset-es2015": "^6.1.18",
