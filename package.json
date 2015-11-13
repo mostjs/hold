@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Emit latest event to new observers",
   "main": "dist/hold.js",
+  "files": ["dist/hold.js"],
   "scripts": {
     "build-dist": "mkdir -p dist && rollup -e most/lib/source/MulticastSource src/hold.js | babel --presets es2015 --plugins transform-es2015-modules-umd --module-id '@most/hold' -o dist/hold.js",
     "build": "npm run build-dist && uglifyjs dist/hold.js -o dist/hold.min.js",
