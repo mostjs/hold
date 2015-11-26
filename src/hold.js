@@ -16,7 +16,7 @@ class Hold extends MulticastSource {
     }
 
     add(sink) {
-        super.add(sink);
+        const len = super.add(sink);
         if (this.held) {
             sink.event(this.time, this.value);
         }
