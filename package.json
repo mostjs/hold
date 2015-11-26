@@ -1,6 +1,6 @@
 {
   "name": "@most/hold",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Emit latest event to new observers",
   "main": "dist/hold.js",
   "files": [
