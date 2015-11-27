@@ -1,7 +1,5 @@
 'use strict';
 
-function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
-
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
         define('@most/hold', ['exports', 'most/lib/source/MulticastSource'], factory);
@@ -14,12 +12,12 @@ function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.const
         factory(mod.exports, global.MulticastSource);
         global.mostHold = mod.exports;
     }
-})(this, function (exports, _MulticastSource2) {
+})(this, function (exports, _MulticastSource) {
     Object.defineProperty(exports, "__esModule", {
         value: true
     });
 
-    var _MulticastSource3 = _interopRequireDefault(_MulticastSource2);
+    var _MulticastSource2 = _interopRequireDefault(_MulticastSource);
 
     function _interopRequireDefault(obj) {
         return obj && obj.__esModule ? obj : {
@@ -51,99 +49,55 @@ function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.const
         };
     })();
 
-    function _possibleConstructorReturn(self, call) {
-        if (!self) {
-            throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-        }
-
-        return call && ((typeof call === 'undefined' ? 'undefined' : _typeof(call)) === "object" || typeof call === "function") ? call : self;
-    }
-
-    var _get = function get(object, property, receiver) {
-        if (object === null) object = Function.prototype;
-        var desc = Object.getOwnPropertyDescriptor(object, property);
-
-        if (desc === undefined) {
-            var parent = Object.getPrototypeOf(object);
-
-            if (parent === null) {
-                return undefined;
-            } else {
-                return get(parent, property, receiver);
-            }
-        } else if ("value" in desc) {
-            return desc.value;
-        } else {
-            var getter = desc.get;
-
-            if (getter === undefined) {
-                return undefined;
-            }
-
-            return getter.call(receiver);
-        }
-    };
-
-    function _inherits(subClass, superClass) {
-        if (typeof superClass !== "function" && superClass !== null) {
-            throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-        }
-
-        subClass.prototype = Object.create(superClass && superClass.prototype, {
-            constructor: {
-                value: subClass,
-                enumerable: false,
-                writable: true,
-                configurable: true
-            }
-        });
-        if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-    }
-
     var hold = function hold(stream) {
-        return new stream.constructor(new Hold(stream.source));
+        return new stream.constructor(new _MulticastSource2.default(new Hold(stream.source)));
     };
 
-    var Hold = (function (_MulticastSource) {
-        _inherits(Hold, _MulticastSource);
-
+    var Hold = (function () {
         function Hold(source) {
             _classCallCheck(this, Hold);
 
-            var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Hold).call(this, source));
-
-            _this.time = -Infinity;
-            _this.value = void 0;
-            _this.held = false;
-            return _this;
+            this.source = source;
+            this.time = -Infinity;
+            this.value = void 0;
         }
 
         _createClass(Hold, [{
-            key: 'add',
-            value: function add(sink) {
-                var len = _get(Object.getPrototypeOf(Hold.prototype), 'add', this).call(this, sink);
-
-                if (this.held) {
-                    sink.event(this.time, this.value);
+            key: 'run',
+            value: function run(sink, scheduler) {
+                if (sink._hold !== this) {
+                    sink._hold = this;
+                    sink._holdAdd = sink.add;
+                    sink.add = holdAdd;
+                    sink._holdEvent = sink.event;
+                    sink.event = holdEvent;
                 }
 
-                return len;
-            }
-        }, {
-            key: 'event',
-            value: function event(t, x) {
-                if (t >= this.time) {
-                    this.time = t;
-                    this.value = x;
-                    this.held = true;
-                }
-
-                _get(Object.getPrototypeOf(Hold.prototype), 'event', this).call(this, t, x);
+                return this.source.run(sink, scheduler);
             }
         }]);
 
         return Hold;
-    })(_MulticastSource3.default);
+    })();
+
+    function holdAdd(sink) {
+        var len = this._holdAdd(sink);
+
+        if (this._hold.time >= 0) {
+            sink.event(this._hold.time, this._hold.value);
+        }
+
+        return len;
+    }
+
+    function holdEvent(t, x) {
+        if (t >= this._hold.time) {
+            this._hold.time = t;
+            this._hold.value = x;
+        }
+
+        return this._holdEvent(t, x);
+    }
 
     exports.default = hold;
 });
