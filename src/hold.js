@@ -5,30 +5,41 @@
 import MulticastSource from 'most/lib/source/MulticastSource';
 
 // hold :: Stream a -> Stream a
-export default stream => new stream.constructor(new Hold(stream.source));
+export default stream => new stream.constructor(new MulticastSource(new Hold(stream.source)));
 
-class Hold extends MulticastSource {
+class Hold {
     constructor(source) {
-        super(source);
+        this.source = source;
         this.time = -Infinity;
         this.value = void 0;
-        this.held = false;
     }
 
-    add(sink) {
-        const len = super.add(sink);
-        if (this.held) {
-            sink.event(this.time, this.value);
-        }
-        return len;
-    }
+    run(sink, scheduler) {
+        if (sink._hold !== this) {
+            sink._hold = this;
+            sink._holdAdd = sink.add;
+            sink.add = holdAdd;
 
-    event(t, x) {
-        if (t >= this.time) {
-            this.time = t;
-            this.value = x;
-            this.held = true;
+            sink._holdEvent = sink.event;
+            sink.event = holdEvent;
         }
-        super.event(t, x);
+
+        return this.source.run(sink, scheduler);
     }
+}
+
+function holdAdd(sink) {
+    const len = this._holdAdd(sink);
+    if (this._hold.time >= 0) {
+        sink.event(this._hold.time, this._hold.value);
+    }
+    return len;
+}
+
+function holdEvent(t, x) {
+    if (t >= this._hold.time) {
+        this._hold.time = t;
+        this._hold.value = x;
+    }
+    return this._holdEvent(t, x);
 }
