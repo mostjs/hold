@@ -1,5 +1,3 @@
-'use strict';
-
 (function (global, factory) {
     if (typeof define === "function" && define.amd) {
         define('@most/hold', ['exports', 'most/lib/source/MulticastSource'], factory);
@@ -13,6 +11,8 @@
         global.mostHold = mod.exports;
     }
 })(this, function (exports, _MulticastSource) {
+    'use strict';
+
     Object.defineProperty(exports, "__esModule", {
         value: true
     });
@@ -31,7 +31,7 @@
         }
     }
 
-    var _createClass = (function () {
+    var _createClass = function () {
         function defineProperties(target, props) {
             for (var i = 0; i < props.length; i++) {
                 var descriptor = props[i];
@@ -47,13 +47,13 @@
             if (staticProps) defineProperties(Constructor, staticProps);
             return Constructor;
         };
-    })();
+    }();
 
     var hold = function hold(stream) {
         return new stream.constructor(new _MulticastSource2.default(new Hold(stream.source)));
     };
 
-    var Hold = (function () {
+    var Hold = function () {
         function Hold(source) {
             _classCallCheck(this, Hold);
 
@@ -78,7 +78,7 @@
         }]);
 
         return Hold;
-    })();
+    }();
 
     function holdAdd(sink) {
         var len = this._holdAdd(sink);
