@@ -2,7 +2,7 @@
 /** @author Brian Cavalier */
 'use strict';
 
-import MulticastSource from 'most/lib/source/MulticastSource';
+import { MulticastSource } from '@most/multicast';
 
 // hold :: Stream a -> Stream a
 export default stream => new stream.constructor(new MulticastSource(new Hold(stream.source)));
