@@ -23,7 +23,7 @@
     }
   }
 
-  var _createClass = (function () {
+  var _createClass = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];
@@ -39,13 +39,14 @@
       if (staticProps) defineProperties(Constructor, staticProps);
       return Constructor;
     };
-  })();
+  }();
 
+  // hold :: Stream a -> Stream a
   var index = function index(stream) {
     return new stream.constructor(new _multicast.MulticastSource(new Hold(stream.source)));
   };
 
-  var Hold = (function () {
+  var Hold = function () {
     function Hold(source) {
       _classCallCheck(this, Hold);
 
@@ -61,6 +62,7 @@
           sink._hold = this;
           sink._holdAdd = sink.add;
           sink.add = holdAdd;
+
           sink._holdEvent = sink.event;
           sink.event = holdEvent;
         }
@@ -70,15 +72,13 @@
     }]);
 
     return Hold;
-  })();
+  }();
 
   function holdAdd(sink) {
     var len = this._holdAdd(sink);
-
     if (this._hold.time >= 0) {
       sink.event(this._hold.time, this._hold.value);
     }
-
     return len;
   }
 
@@ -87,7 +87,6 @@
       this._hold.time = t;
       this._hold.value = x;
     }
-
     return this._holdEvent(t, x);
   }
 
