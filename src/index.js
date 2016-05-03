@@ -15,6 +15,7 @@ class Hold {
   }
 
   run (sink, scheduler) {
+    /* istanbul ignore else */
     if (sink._hold !== this) {
       sink._hold = this
       sink._holdAdd = sink.add
@@ -30,6 +31,7 @@ class Hold {
 
 function holdAdd (sink) {
   const len = this._holdAdd(sink)
+  /* istanbul ignore else */
   if (this._hold.time >= 0) {
     sink.event(this._hold.time, this._hold.value)
   }
@@ -37,6 +39,7 @@ function holdAdd (sink) {
 }
 
 function holdEvent (t, x) {
+  /* istanbul ignore else */
   if (t >= this._hold.time) {
     this._hold.time = t
     this._hold.value = x
