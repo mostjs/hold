@@ -58,6 +58,7 @@
     _createClass(Hold, [{
       key: 'run',
       value: function run(sink, scheduler) {
+        /* istanbul ignore else */
         if (sink._hold !== this) {
           sink._hold = this;
           sink._holdAdd = sink.add;
@@ -76,6 +77,7 @@
 
   function holdAdd(sink) {
     var len = this._holdAdd(sink);
+    /* istanbul ignore else */
     if (this._hold.time >= 0) {
       sink.event(this._hold.time, this._hold.value);
     }
@@ -83,6 +85,7 @@
   }
 
   function holdEvent(t, x) {
+    /* istanbul ignore else */
     if (t >= this._hold.time) {
       this._hold.time = t;
       this._hold.value = x;
