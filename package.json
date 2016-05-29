@@ -4,7 +4,8 @@
   "description": "Emit latest event to new observers",
   "main": "dist/hold.js",
   "files": [
-    "dist/hold.js"
+    "dist/hold.js",
+    "type-definitions/hold.d.ts"
   ],
   "repository": {
     "type": "git",
