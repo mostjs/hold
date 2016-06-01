@@ -3,6 +3,7 @@
   "version": "1.2.0",
   "description": "Emit latest event to new observers",
   "main": "dist/hold.js",
+  "typings": "type-definitions/hold.d.ts",
   "files": [
     "dist/hold.js",
     "type-definitions/hold.d.ts"
