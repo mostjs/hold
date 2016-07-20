@@ -46,12 +46,12 @@
     "isparta": "^4.0.0",
     "jsinspect": "^0.8.0",
     "mocha": "^2.4.5",
-    "most": "^0.19.0",
+    "most": "^1.0.0",
     "rollup": "^0.20.5",
     "uglify-js": "^2.6.0"
   },
   "peerDependencies": {
-    "most": "^0.19.0"
+    "most": "^1.0.0"
   },
   "dependencies": {
     "@most/multicast": "^1.1.0"
