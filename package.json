@@ -5,7 +5,7 @@
   "main": "dist/hold.js",
   "typings": "type-definitions/hold.d.ts",
   "files": [
-    "dist/hold.js",
+    "dist/*",
     "type-definitions/hold.d.ts"
   ],
   "repository": {
