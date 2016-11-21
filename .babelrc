@@ -1,3 +1,8 @@
 {
-  "presets": ["es2015"]
+  "presets": ["es2015"],
+  "env": {
+    "es2015-modules": {
+      "presets": ["es2015", {"modules" : false}]
+    }
+  }
 }
