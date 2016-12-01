@@ -7,7 +7,7 @@
   "module": "dist/hold.es2015.js",
   "typings": "type-definitions/hold.d.ts",
   "files": [
-    "dist/hold.js",
+    "dist/*",
     "type-definitions/hold.d.ts"
   ],
   "repository": {
