@@ -1,6 +1,6 @@
 {
   "name": "@most/hold",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Emit latest event to new observers",
   "main": "dist/hold.js",
   "jsnext:main": "dist/hold.es2015.js",
