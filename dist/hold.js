@@ -1,97 +1,51 @@
 (function (global, factory) {
-  if (typeof define === "function" && define.amd) {
-    define('@most/hold', ['exports', '@most/multicast'], factory);
-  } else if (typeof exports !== "undefined") {
-    factory(exports, require('@most/multicast'));
-  } else {
-    var mod = {
-      exports: {}
-    };
-    factory(mod.exports, global.multicast);
-    global.mostHold = mod.exports;
-  }
-})(this, function (exports, _multicast) {
-  'use strict';
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var _createClass = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-
-    return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  }();
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('@most/multicast')) :
+  typeof define === 'function' && define.amd ? define(['@most/multicast'], factory) :
+  global.mostHold = factory(global._most_multicast);
+}(this, function (_most_multicast) { 'use strict';
 
   // hold :: Stream a -> Stream a
-  var index = function index(stream) {
-    return new stream.constructor(new _multicast.MulticastSource(new Hold(stream.source)));
+  function index (stream) { return new stream.constructor(new _most_multicast.MulticastSource(new Hold(stream.source))); }
+
+  var Hold = function Hold (source) {
+    this.source = source
+    this.time = -Infinity
+    this.value = void 0
   };
 
-  var Hold = function () {
-    function Hold(source) {
-      _classCallCheck(this, Hold);
+  Hold.prototype.run = function run (sink, scheduler) {
+    /* istanbul ignore else */
+    if (sink._hold !== this) {
+      sink._hold = this
+      sink._holdAdd = sink.add
+      sink.add = holdAdd
 
-      this.source = source;
-      this.time = -Infinity;
-      this.value = void 0;
+      sink._holdEvent = sink.event
+      sink.event = holdEvent
     }
 
-    _createClass(Hold, [{
-      key: 'run',
-      value: function run(sink, scheduler) {
-        /* istanbul ignore else */
-        if (sink._hold !== this) {
-          sink._hold = this;
-          sink._holdAdd = sink.add;
-          sink.add = holdAdd;
+    return this.source.run(sink, scheduler)
+  };
 
-          sink._holdEvent = sink.event;
-          sink.event = holdEvent;
-        }
-
-        return this.source.run(sink, scheduler);
-      }
-    }]);
-
-    return Hold;
-  }();
-
-  function holdAdd(sink) {
-    var len = this._holdAdd(sink);
+  function holdAdd (sink) {
+    var len = this._holdAdd(sink)
     /* istanbul ignore else */
     if (this._hold.time >= 0) {
-      sink.event(this._hold.time, this._hold.value);
+      sink.event(this._hold.time, this._hold.value)
     }
-    return len;
+    return len
   }
 
-  function holdEvent(t, x) {
+  function holdEvent (t, x) {
     /* istanbul ignore else */
     if (t >= this._hold.time) {
-      this._hold.time = t;
-      this._hold.value = x;
+      this._hold.time = t
+      this._hold.value = x
     }
-    return this._holdEvent(t, x);
+    return this._holdEvent(t, x)
   }
 
-  exports.default = index;
-});
+  return index;
+
+}));
+//# sourceMappingURL=hold.js.map
