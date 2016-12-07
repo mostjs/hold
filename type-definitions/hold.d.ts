@@ -1,6 +1,6 @@
 import {Stream, Source, Sink, Scheduler, Disposable} from "most";
 
-export default function hold<A>(stream: Stream<A>): Stream<A>;
+export function hold<A>(stream: Stream<A>): Stream<A>;
 
 export class Hold<T> implements Source<T> {
   protected source: Source<T>;
