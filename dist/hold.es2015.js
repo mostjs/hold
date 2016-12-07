@@ -41,5 +41,5 @@ function holdEvent (t, x) {
   return this._holdEvent(t, x)
 }
 
-export default index;
+export { Hold };export default index;
 //# sourceMappingURL=hold.es2015.js.map
