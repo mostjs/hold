@@ -1,5 +1,12 @@
-import {Stream} from "most";
+import {Stream, Source, Sink, Scheduler, Disposable} from "most";
 
-function hold<A>(stream: Stream<A>): Stream<A>;
+export default function hold<A>(stream: Stream<A>): Stream<A>;
 
-export = hold;
+export class Hold<T> implements Source<T> {
+  protected source: Source<T>;
+  protected time: number;
+  protected value: T;
+
+  constructor(sources: Source<T>);
+  run(sink: Sink<T>, scheduler: Scheduler): Disposable<T>;
+}
