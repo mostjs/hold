@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('@most/multicast')) :
-  typeof define === 'function' && define.amd ? define(['@most/multicast'], factory) :
-  global.mostHold = factory(global._most_multicast);
-}(this, function (_most_multicast) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@most/multicast')) :
+  typeof define === 'function' && define.amd ? define(['exports', '@most/multicast'], factory) :
+  factory((global.mostHold = {}),global._most_multicast);
+}(this, function (exports,_most_multicast) { 'use strict';
 
   // hold :: Stream a -> Stream a
   function index (stream) { return new stream.constructor(new _most_multicast.MulticastSource(new Hold(stream.source))); }
@@ -45,7 +45,8 @@
     return this._holdEvent(t, x)
   }
 
-  return index;
+  exports['default'] = index;
+  exports.Hold = Hold;
 
 }));
 //# sourceMappingURL=hold.js.map
