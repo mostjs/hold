@@ -5,7 +5,7 @@
 }(this, function (exports,_most_multicast) { 'use strict';
 
   // hold :: Stream a -> Stream a
-  function index (stream) { return new stream.constructor(new _most_multicast.MulticastSource(new Hold(stream.source))); }
+  var hold = function (stream) { return new stream.constructor(new _most_multicast.MulticastSource(new Hold(stream.source))); }
 
   var Hold = function Hold (source) {
     this.source = source
@@ -45,7 +45,7 @@
     return this._holdEvent(t, x)
   }
 
-  exports['default'] = index;
+  exports.hold = hold;
   exports.Hold = Hold;
 
 }));

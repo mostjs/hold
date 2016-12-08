@@ -5,9 +5,10 @@
 import { MulticastSource } from '@most/multicast'
 
 // hold :: Stream a -> Stream a
-export default stream => new stream.constructor(new MulticastSource(new Hold(stream.source)))
+export const hold = stream =>
+  new stream.constructor(new MulticastSource(new Hold(stream.source)))
 
-export class Hold {
+class Hold {
   constructor (source) {
     this.source = source
     this.time = -Infinity

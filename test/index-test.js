@@ -3,7 +3,7 @@
 import { describe, it } from 'mocha'
 import assert from 'assert'
 import { periodic } from 'most'
-import hold from '../src/index'
+import { hold } from '../src/index'
 
 describe('hold', () => {
   it('should return stream of same type', () => {

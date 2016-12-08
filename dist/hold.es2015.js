@@ -1,7 +1,7 @@
 import { MulticastSource } from '@most/multicast';
 
 // hold :: Stream a -> Stream a
-function index (stream) { return new stream.constructor(new MulticastSource(new Hold(stream.source))); }
+var hold = function (stream) { return new stream.constructor(new MulticastSource(new Hold(stream.source))); }
 
 var Hold = function Hold (source) {
   this.source = source
@@ -41,5 +41,5 @@ function holdEvent (t, x) {
   return this._holdEvent(t, x)
 }
 
-export { Hold };export default index;
+export { hold, Hold };
 //# sourceMappingURL=hold.es2015.js.map
