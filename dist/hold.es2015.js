@@ -41,5 +41,5 @@ function holdEvent (t, x) {
   return this._holdEvent(t, x)
 }
 
-export { hold, Hold };
+export { hold };
 //# sourceMappingURL=hold.es2015.js.map

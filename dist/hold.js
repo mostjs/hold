@@ -46,7 +46,6 @@
   }
 
   exports.hold = hold;
-  exports.Hold = Hold;
 
 }));
 //# sourceMappingURL=hold.js.map
