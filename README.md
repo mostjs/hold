@@ -6,6 +6,21 @@ Deliver the most recently seen event to each new observer the instant it begins 
 
 `npm install --save @most/hold`
 
+## Usage
+
+```js
+import { fromEvent } from 'most'
+import { hold } from '@most/hold'
+
+// start holding on first subscription
+const clickStream = fromEvent('click', document)
+  .map(e => ({ x: e.clientX, y: clientY }))
+  .thru(hold)
+
+// hold the latest event even before the first subscription
+clickStream.drain();
+```
+
 ## API
 
 ### hold :: Stream a &rarr; Stream a
