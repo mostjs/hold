@@ -2,26 +2,28 @@
   "name": "@most/hold",
   "version": "2.0.0",
   "description": "Emit latest event to new observers",
-  "main": "dist/hold.js",
-  "jsnext:main": "dist/hold.es2015.js",
-  "module": "dist/hold.es2015.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "jsnext:main": "dist/index.es.js",
   "typings": "type-definitions/hold.d.ts",
   "files": [
-    "dist/*",
-    "type-definitions/hold.d.ts"
+    "dist",
+    "type-definitions"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/mostjs/hold.git"
   },
   "scripts": {
-    "build-dist": "rollup -c && rollup -c rollup.es.js",
-    "build": "npm run build-dist && uglifyjs dist/hold.js -o dist/hold.min.js",
-    "prepublish": "npm run build",
-    "preversion": "npm run build",
-    "unit-test": "istanbul cover _mocha",
-    "lint": "jsinspect src && jsinspect test && eslint src test",
-    "test": "npm run lint && npm run unit-test"
+    "test": "npm run test:lint && npm run test:unit && npm run test:flow",
+    "test:unit": "nyc --reporter=text-summary mocha -r buba/register --reporter dot --recursive 'test/**/*-test.js'",
+    "test:lint": "standard --fix 'src/**/*.js' 'test/**/*.js' --verbose | snazzy",
+    "test:flow": "flow check",
+    "build": "npm run build:dist && npm run build:min && npm run build:flow",
+    "build:dist": "rollup -c",
+    "build:min": "uglifyjs dist/index.js -m -o dist/index.min.js",
+    "build:flow": "cpy src/index.js.flow dist --rename=index.js.flow",
+    "prepublish": "npm run build"
   },
   "keywords": [
     "most",
@@ -33,25 +35,24 @@
   "author": "brian@hovercraftstudios.com",
   "license": "MIT",
   "devDependencies": {
-    "@most/eslint-config-most": "^1.0.3",
-    "assert": "^1.4.1",
+    "@briancavalier/assert": "^3.4.0",
+    "@most/scheduler": "^0.13.0",
     "buba": "^4.0.1",
-    "eslint": "^3.11.1",
-    "eslint-config-standard": "^5.3.5",
-    "eslint-plugin-promise": "^2.0.1",
-    "eslint-plugin-standard": "^2.0.1",
-    "istanbul": "^1.1.0-alpha.1",
+    "cpy-cli": "^1.0.1",
+    "flow-bin": "^0.54.1",
     "jsinspect": "^0.8.0",
     "mocha": "^2.5.3",
     "most": "^1.1.0",
-    "rollup": "^0.20.5",
-    "rollup-plugin-buble": "^0.14.0",
-    "uglify-js": "^2.7.5"
-  },
-  "peerDependencies": {
-    "most": "^1.1.0"
+    "nyc": "^11.2.1",
+    "rollup": "^0.50.0",
+    "rollup-plugin-buble": "^0.15.0",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "snazzy": "^7.0.0",
+    "standard": "^10.0.3",
+    "uglify-js": "^3.1.1"
   },
   "dependencies": {
-    "@most/multicast": "^1.2.4"
+    "@most/core": "^0.13.0",
+    "@most/types": "^0.11.1"
   }
 }

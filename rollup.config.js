@@ -1,10 +1,25 @@
 import buble from 'rollup-plugin-buble'
+import nodeResolve from 'rollup-plugin-node-resolve'
 
 export default {
-  entry: 'src/index.js',
-  dest: 'dist/hold.js',
-  moduleName: 'mostHold',
-  format: 'umd',
-  sourceMap: true,
-  plugins: [buble()]
+  input: 'src/index.js',
+  plugins: [
+    buble(),
+    nodeResolve({
+      jsnext: true
+    })
+  ],
+  output: [
+    {
+      file: 'dist/index.js',
+      format: 'umd',
+      name: 'mostHold',
+      sourcemap: true
+    },
+    {
+      file: 'dist/index.es.js',
+      format: 'es',
+      sourcemap: true
+    }
+  ]
 }
