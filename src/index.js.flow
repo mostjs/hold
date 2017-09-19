@@ -2,4 +2,3 @@
 import type { Stream } from '@most/types'
 
 declare export function hold <A> (s: Stream<A>): Stream<A>
-
