@@ -4,7 +4,6 @@
   "description": "Emit latest event to new observers",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
-  "jsnext:main": "dist/index.es.js",
   "typings": "type-definitions/hold.d.ts",
   "files": [
     "dist",

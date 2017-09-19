@@ -1,23 +1,22 @@
 import buble from 'rollup-plugin-buble'
 import nodeResolve from 'rollup-plugin-node-resolve'
+import pkg from './package.json'
 
 export default {
   input: 'src/index.js',
   plugins: [
     buble(),
-    nodeResolve({
-      jsnext: true
-    })
+    nodeResolve()
   ],
   output: [
     {
-      file: 'dist/index.js',
+      file: pkg.main,
       format: 'umd',
       name: 'mostHold',
       sourcemap: true
     },
     {
-      file: 'dist/index.es.js',
+      file: pkg.module,
       format: 'es',
       sourcemap: true
     }
