@@ -58,14 +58,17 @@ function runHeldEvent (time, value, holdSink) {
 }
 
 class HoldDisposable {
-  constructor (source, sink) {
-    this.source = source
+  constructor (hold, sink) {
+    this.hold = hold
     this.sink = sink
   }
 
   dispose () {
-    if (this.source.remove(this.sink) === 0) {
-      this.source.dispose()
+    const { hold, sink } = this
+    const lastSinkIsRemoved = hold.remove(sink) === 0
+
+    if (lastSinkIsRemoved) {
+      hold.dispose()
     }
   }
 }
