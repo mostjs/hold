@@ -38,7 +38,7 @@
     "@most/scheduler": "^0.13.0",
     "buba": "^4.0.1",
     "cpy-cli": "^1.0.1",
-    "flow-bin": "^0.54.1",
+    "flow-bin": "^0.55.0",
     "jsinspect": "^0.12.7",
     "mocha": "^3.5.3",
     "nyc": "^11.2.1",
