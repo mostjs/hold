@@ -35,7 +35,6 @@
   "license": "MIT",
   "devDependencies": {
     "@briancavalier/assert": "^3.4.0",
-    "@most/scheduler": "^0.13.0",
     "buba": "^4.0.1",
     "cpy-cli": "^1.0.1",
     "flow-bin": "^0.55.0",
@@ -50,6 +49,8 @@
   },
   "dependencies": {
     "@most/core": "^0.13.0",
+    "@most/disposable": "^0.13.0",
+    "@most/scheduler": "^0.13.0",    
     "@most/types": "^0.11.1"
   }
 }
