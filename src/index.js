@@ -1,12 +1,10 @@
-/** @license MIT License (c) copyright 2015-2016 original author or authors */
-/** @author Brian Cavalier */
-'use strict'
+/** @license MIT License (c) copyright 2015-2017 original author or authors */
 
-import { MulticastSource } from '@most/multicast'
+import { MulticastSource } from '@most/core'
 
 // hold :: Stream a -> Stream a
 export const hold = stream =>
-  new stream.constructor(new MulticastSource(new Hold(stream.source)))
+  new MulticastSource(new Hold(stream))
 
 class Hold {
   constructor (source) {

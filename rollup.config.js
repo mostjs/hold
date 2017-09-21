@@ -1,10 +1,26 @@
 import buble from 'rollup-plugin-buble'
+import pkg from './package.json'
 
 export default {
-  entry: 'src/index.js',
-  dest: 'dist/hold.js',
-  moduleName: 'mostHold',
-  format: 'umd',
-  sourceMap: true,
-  plugins: [buble()]
+  input: 'src/index.js',
+  plugins: [
+    buble()
+  ],
+  external: ['@most/core'],
+  output: [
+    {
+      file: pkg.main,
+      format: 'umd',
+      name: 'mostHold',
+      sourcemap: true,
+      globals: {
+        '@most/core': 'mostCore'
+      }
+    },
+    {
+      file: pkg.module,
+      format: 'es',
+      sourcemap: true
+    }
+  ]
 }
