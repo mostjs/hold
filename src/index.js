@@ -1,5 +1,5 @@
 import { MulticastSource } from '@most/core'
-import { asap } from '@most/scheduler'
+import { asap, cancelTask } from '@most/scheduler'
 
 export const hold = stream =>
   new Hold(stream)
@@ -53,8 +53,7 @@ export class Hold extends MulticastSource {
 
   _cancelTask () {
     if (this.task) {
-      console.log(this.task.cancel, this.task.dispose)
-      this.task.dispose()
+      cancelTask(this.task)
       this.task = undefined
     }
   }
