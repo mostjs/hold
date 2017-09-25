@@ -15,7 +15,7 @@
   },
   "scripts": {
     "test": "npm run test:lint && npm run test:unit && npm run test:flow",
-    "test:unit": "nyc --reporter=text-summary mocha -r buba/register --reporter dot --recursive 'test/**/*-test.js'",
+    "test:unit": "nyc mocha -r buba/register --reporter dot --recursive 'test/**/*-test.js'",
     "test:lint": "jsinspect src/*.js test/*.js && standard --fix 'src/**/*.js' 'test/**/*.js' --verbose | snazzy",
     "test:flow": "flow check",
     "build": "npm run build:dist && npm run build:min && npm run build:flow",
@@ -35,7 +35,6 @@
   "license": "MIT",
   "devDependencies": {
     "@briancavalier/assert": "^3.4.0",
-    "@most/scheduler": "^0.13.0",
     "buba": "^4.0.1",
     "cpy-cli": "^1.0.1",
     "flow-bin": "^0.55.0",
@@ -50,6 +49,7 @@
   },
   "dependencies": {
     "@most/core": "^0.13.0",
+    "@most/prelude": "^1.6.4",
     "@most/types": "^0.11.1"
   }
 }

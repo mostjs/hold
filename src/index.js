@@ -1,47 +1,95 @@
-/** @license MIT License (c) copyright 2015-2017 original author or authors */
-
 import { MulticastSource } from '@most/core'
+import { asap } from '@most/scheduler'
 
-// hold :: Stream a -> Stream a
 export const hold = stream =>
-  new MulticastSource(new Hold(stream))
+  new Hold(stream)
 
-class Hold {
+export class Hold extends MulticastSource {
   constructor (source) {
-    this.source = source
-    this.time = -Infinity
-    this.value = void 0
+    super(source)
+    this.hasValue = false
+    this.value = undefined
+    this.pendingSinks = []
+    this.task = undefined
   }
 
   run (sink, scheduler) {
-    /* istanbul ignore else */
-    if (sink._hold !== this) {
-      sink._hold = this
-      sink._holdAdd = sink.add
-      sink.add = holdAdd
-
-      sink._holdEvent = sink.event
-      sink.event = holdEvent
+    if (this.hasValue && this.sinks.length > 0) {
+      this._scheduleFlush(sink, scheduler)
     }
 
-    return this.source.run(sink, scheduler)
+    return super.run(sink, scheduler)
+  }
+
+  dispose () {
+    this._cancelTask()
+    return super.dispose()
+  }
+
+  event (time, value) {
+    this.hasValue = true
+    this.value = value
+    const pendingSinks = this._flushPending(time)
+    super.event(time, value)
+    this.sinks = this.sinks.concat(pendingSinks)
+  }
+
+  _flushPending (time) {
+    const pendingSinks = this.pendingSinks
+    this.pendingSinks = []
+    for (let i = 0; i < pendingSinks.length; ++i) {
+      tryEvent(time, this.value, pendingSinks[i])
+    }
+    return pendingSinks
+  }
+
+  _scheduleFlush (sink, scheduler) {
+    this.pendingSinks.push(sink)
+    if (!this.task) {
+      this._cancelTask()
+      this.task = asap(new HoldTask(this), scheduler)
+    }
+  }
+
+  _cancelTask () {
+    if (this.task) {
+      console.log(this.task.cancel, this.task.dispose)
+      this.task.dispose()
+      this.task = undefined
+    }
+  }
+
+  end (time) {
+    this._flushPending(time)
+    super.end(time)
+  }
+
+  error (time, err) {
+    this._flushPending(time)
+    super.error(time, err)
   }
 }
 
-function holdAdd (sink) {
-  const len = this._holdAdd(sink)
-  /* istanbul ignore else */
-  if (this._hold.time >= 0) {
-    sink.event(this._hold.time, this._hold.value)
+class HoldTask {
+  constructor (hold) {
+    this.hold = hold
   }
-  return len
+
+  run (t) {
+    this.hold._flushPending(t)
+  }
+
+  error (t, e) {
+    this.hold.error(t, e)
+  }
+
+  dispose () {}
 }
 
-function holdEvent (t, x) {
-  /* istanbul ignore else */
-  if (t >= this._hold.time) {
-    this._hold.time = t
-    this._hold.value = x
+export function tryEvent (t, x, sink) {
+  try {
+    sink.event(t, x)
+  } catch (e) {
+    sink.error(t, e)
   }
-  return this._holdEvent(t, x)
 }
