@@ -46,7 +46,7 @@ export class Hold extends MulticastSource {
   _scheduleFlush (sink, scheduler) {
     this.pendingSinks.push(sink)
     if (!this.task) {
-      this._cancelTask()
+      cancelTask(this.task)
       this.task = asap(new HoldTask(this), scheduler)
     }
   }
@@ -85,7 +85,7 @@ class HoldTask {
   dispose () {}
 }
 
-export function tryEvent (t, x, sink) {
+function tryEvent (t, x, sink) {
   try {
     sink.event(t, x)
   } catch (e) {
