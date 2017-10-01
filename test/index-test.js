@@ -1,3 +1,4 @@
+// @flow
 import { describe, it } from 'mocha'
 import { eq, assert } from '@briancavalier/assert'
 import { at, mergeArray, runEffects, take, tap } from '@most/core'
@@ -16,7 +17,7 @@ const verifyHold = f => {
   const s = hold(mergeArray([at(0, 0), at(10, 1), at(20, 2)]))
 
   const p0 = collect(take(1, s), scheduler)
-    .then(eq([0]))
+    .then(events => eq([0], events))
 
   const p1 = f(s, scheduler)
 
@@ -33,9 +34,10 @@ describe('hold', () => {
           },
           error (t, e) {
             reject(e)
-          }
+          },
+          dispose () {}
         }, scheduler)
-      }).then(eq([0, 1, 2]))
+      }).then(events => eq([0, 1, 2], events))
     })
   })
 
@@ -50,7 +52,8 @@ describe('hold', () => {
           },
           error (t, e) {
             reject(e)
-          }
+          },
+          dispose () {}
         }, scheduler)
       })
     })
