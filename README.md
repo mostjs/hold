@@ -2,6 +2,8 @@
 
 Deliver the most recently seen event to each new observer the instant it begins observing.  A held stream is always multicast.
 
+**Note**: `@most/hold@^3` is compatible with [`@most/core`](http://mostcore.readthedocs.io/en/latest/).  Use `@most/hold@^2` for compatibility with [`most@^1`](https://github.com/cujojs/most/releases)
+
 ## Install
 
 `npm install --save @most/hold`
