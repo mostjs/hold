@@ -11,16 +11,14 @@ Deliver the most recently seen event to each new observer the instant it begins 
 ## Usage
 
 ```js
-import { fromEvent } from 'most'
+import { click } from '@most/dom-event'
+import { map } from '@most/core'
 import { hold } from '@most/hold'
 
-// start holding on first subscription
-const clickStream = fromEvent('click', document)
-  .map(e => ({ x: e.clientX, y: clientY }))
-  .thru(hold)
+const clickCoords = map(e => ({ x: e.clientX, y: clientY }), click(document))
 
-// hold the latest event even before the first subscription
-clickStream.drain();
+// start holding on first subscription
+const heldCoords = hold(clickCoords)
 ```
 
 ## API
