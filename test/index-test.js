@@ -6,10 +6,10 @@ import { newDefaultScheduler, delay } from '@most/scheduler'
 import { hold } from '../src/index'
 
 const collect = (stream, scheduler) => {
-  const into = []
-  const collectStream = tap(x => into.push(x), stream)
+  const eventValues = []
+  const collectStream = tap(x => eventValues.push(x), stream)
   return runEffects(collectStream, scheduler)
-    .then(() => into)
+    .then(() => eventValues)
 }
 
 const verifyHold = f => {
