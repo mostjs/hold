@@ -1,3 +1,3 @@
-import {Stream, Source, Sink, Scheduler, Disposable} from "most";
+import { Stream } from "@most/types";
 
 export function hold<A>(stream: Stream<A>): Stream<A>;
