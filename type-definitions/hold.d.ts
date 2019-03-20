@@ -1,3 +1,3 @@
-import {Stream} from "most";
+import { Stream } from "@most/types";
 
-export default function hold<A>(stream: Stream<A>): Stream<A>;
+export function hold<A>(stream: Stream<A>): Stream<A>;

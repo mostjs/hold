@@ -1,48 +1,118 @@
-/** @license MIT License (c) copyright 2015-2016 original author or authors */
-/** @author Brian Cavalier */
-'use strict'
+// @flow
+import type { Stream, Sink, ScheduledTask, Time, Scheduler, Disposable } from '@most/types'
+import { MulticastSource } from '@most/core'
+import { asap, cancelTask } from '@most/scheduler'
 
-import { MulticastSource } from '@most/multicast'
+export const hold = <A> (stream: Stream<A>): Stream<A> =>
+  new Hold(stream)
 
-// hold :: Stream a -> Stream a
-export default stream => new stream.constructor(new MulticastSource(new Hold(stream.source)))
+type HeldValue<A> = { value: A }
 
-class Hold {
-  constructor (source) {
-    this.source = source
-    this.time = -Infinity
-    this.value = void 0
+class Hold<A> extends MulticastSource<A> {
+  pendingSinks: Sink<A>[]
+  held: ?HeldValue<A>
+  task: ?ScheduledTask
+
+  constructor (source: Stream<A>) {
+    super(source)
+    this.pendingSinks = []
+    this.held = undefined
+    this.task = undefined
   }
 
-  run (sink, scheduler) {
-    /* istanbul ignore else */
-    if (sink._hold !== this) {
-      sink._hold = this
-      sink._holdAdd = sink.add
-      sink.add = holdAdd
-
-      sink._holdEvent = sink.event
-      sink.event = holdEvent
+  run (sink: Sink<A>, scheduler: Scheduler): Disposable {
+    if (this._shouldScheduleFlush()) {
+      this._scheduleFlush(sink, scheduler)
     }
 
-    return this.source.run(sink, scheduler)
+    return super.run(sink, scheduler)
+  }
+
+  _hasValue (): boolean {
+    return this.held !== undefined
+  }
+
+  _hasSinks (): boolean {
+    return this.sinks.length > 0
+  }
+
+  _shouldScheduleFlush (): boolean {
+    return this._hasValue() && this._hasSinks()
+  }
+
+  dispose (): void {
+    this._cancelTask()
+    return super.dispose()
+  }
+
+  event (time: Time, value: A): void {
+    const pendingSinks = this._flushPending(time)
+    this.sinks = this.sinks.concat(pendingSinks)
+    this.held = { value }
+    super.event(time, value)
+  }
+
+  _flushPending (time: Time): Sink<A>[] {
+    const pendingSinks = this.pendingSinks
+    this.pendingSinks = []
+
+    if (this.held) {
+      for (let i = 0; i < pendingSinks.length; ++i) {
+        tryEvent(time, this.held.value, pendingSinks[i])
+      }
+    }
+
+    return pendingSinks
+  }
+
+  _scheduleFlush (sink: Sink<A>, scheduler: Scheduler): void {
+    this.pendingSinks.push(sink)
+    if (this.task) {
+      cancelTask(this.task)
+      this.task = asap(new HoldTask(this), scheduler)
+    }
+  }
+
+  _cancelTask (): void {
+    if (this.task) {
+      cancelTask(this.task)
+      this.task = undefined
+    }
+  }
+
+  end (time: Time): void {
+    this._flushPending(time)
+    super.end(time)
+  }
+
+  error (time: Time, err: Error): void {
+    this._flushPending(time)
+    super.error(time, err)
   }
 }
 
-function holdAdd (sink) {
-  const len = this._holdAdd(sink)
-  /* istanbul ignore else */
-  if (this._hold.time >= 0) {
-    sink.event(this._hold.time, this._hold.value)
+class HoldTask<A> {
+  hold: Hold<A>
+
+  constructor (hold: Hold<A>) {
+    this.hold = hold
   }
-  return len
+
+  run (t: Time): void {
+    this.hold._flushPending(t)
+  }
+
+  error (t: Time, e: Error): void {
+    this.hold.error(t, e)
+  }
+
+  dispose (): void {}
 }
 
-function holdEvent (t, x) {
-  /* istanbul ignore else */
-  if (t >= this._hold.time) {
-    this._hold.time = t
-    this._hold.value = x
+function tryEvent <A> (t: Time, x: A, sink: Sink<A>): void {
+  try {
+    sink.event(t, x)
+  } catch (e) {
+    sink.error(t, e)
   }
-  return this._holdEvent(t, x)
 }
