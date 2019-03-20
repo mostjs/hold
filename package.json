@@ -1,6 +1,6 @@
 {
   "name": "@most/hold",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "Emit latest event to new observers",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
