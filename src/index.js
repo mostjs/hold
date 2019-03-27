@@ -25,6 +25,9 @@ class Hold<A> extends MulticastSource<A> {
       this._scheduleFlush(sink, scheduler)
     }
 
+    // This also adds the new sink to the internal sinks array.
+    // At this point, the sink is in both this.sinks and this.pendingSinks,
+    // and later, _flushPending will remove it from this.pendingSinks.
     return super.run(sink, scheduler)
   }
 
@@ -46,23 +49,20 @@ class Hold<A> extends MulticastSource<A> {
   }
 
   event (time: Time, value: A): void {
-    const pendingSinks = this._flushPending(time)
-    this.sinks = this.sinks.concat(pendingSinks)
+    this._flushPending(time)
     this.held = { value }
     super.event(time, value)
   }
 
-  _flushPending (time: Time): Sink<A>[] {
-    const pendingSinks = this.pendingSinks
-    this.pendingSinks = []
+  _flushPending (time: Time): void {
+    if (this.pendingSinks.length > 0 && this.held) {
+      const pendingSinks = this.pendingSinks
+      this.pendingSinks = []
 
-    if (this.held) {
       for (let i = 0; i < pendingSinks.length; ++i) {
         tryEvent(time, this.held.value, pendingSinks[i])
       }
     }
-
-    return pendingSinks
   }
 
   _scheduleFlush (sink: Sink<A>, scheduler: Scheduler): void {

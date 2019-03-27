@@ -1,7 +1,7 @@
 // @flow
 import { describe, it } from 'mocha'
 import { eq, assert } from '@briancavalier/assert'
-import { at, mergeArray, runEffects, take, tap } from '@most/core'
+import { at, mergeArray, merge, join, map, periodic, runEffects, scan, take, tap } from '@most/core'
 import { newDefaultScheduler, delay } from '@most/scheduler'
 import { hold } from '../src/index'
 
@@ -57,5 +57,19 @@ describe('hold', () => {
         }, scheduler)
       })
     })
+  })
+
+  it('should produce expected events', () => {
+    const scheduler = newDefaultScheduler()
+
+    let testHold = hold(scan(x => x + 1, 0, periodic(2)))
+
+    // s1 should see 0 - 4
+    const s1 = map(x => `s1${x}`, take(5, testHold))
+    // s2 should see 2 - 6
+    const s2 = map(x => `s2${x}`, join(at(2, take(5, testHold))))
+
+    return collect(merge(s1, s2), scheduler)
+      .then(events => eq(['s10', 's11', 's12', 's22', 's13', 's23', 's14', 's24', 's25', 's26'], events))
   })
 })
