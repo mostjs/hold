@@ -69,8 +69,8 @@ class Hold<A> extends MulticastSource<A> {
     this.pendingSinks.push(sink)
     if (this.task) {
       cancelTask(this.task)
-      this.task = asap(new HoldTask(this), scheduler)
     }
+    this.task = asap(new HoldTask(this), scheduler)
   }
 
   _cancelTask (): void {
