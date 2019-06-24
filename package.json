@@ -15,8 +15,8 @@
   },
   "scripts": {
     "test": "npm run test:lint && npm run test:unit && npm run test:flow",
-    "test:unit": "nyc --reporter=text-summary mocha -r buba/register --reporter dot --recursive 'test/**/*-test.js'",
-    "test:lint": "jsinspect src/*.js test/*.js && standard --fix 'src/**/*.js' 'test/**/*.js'",
+    "test:unit": "nyc --reporter=text-summary mocha -r buba/register --reporter dot --recursive ./test/**/*-test.js",
+    "test:lint": "jsinspect ./src ./test && standard --fix 'src/**/*.js' 'test/**/*.js'",
     "test:flow": "flow check",
     "build": "npm run build:dist && npm run build:min && npm run build:flow",
     "build:dist": "rollup -c",
