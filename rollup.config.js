@@ -1,12 +1,12 @@
-import buble from 'rollup-plugin-buble'
-import flow from 'rollup-plugin-flow'
+import typescript from 'rollup-plugin-typescript2'
 import pkg from './package.json'
 
 export default {
-  input: 'src/index.js',
+  input: 'src/index.ts',
   plugins: [
-    flow(),
-    buble()
+    typescript({
+      tsconfig: './src/tsconfig.json'
+    })
   ],
   external: ['@most/core', '@most/scheduler'],
   output: [

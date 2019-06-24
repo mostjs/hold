@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es5",
+    "declaration": true,
+    "outDir": "dist",
+    "pretty": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "allowJs": false
+  },
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}

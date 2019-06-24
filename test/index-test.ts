@@ -2,16 +2,18 @@ import { describe, it } from 'mocha'
 import { eq, assert } from '@briancavalier/assert'
 import { at, mergeArray, merge, join, map, periodic, runEffects, scan, take, tap, propagateEventTask } from '@most/core'
 import { newDefaultScheduler, delay, asap } from '@most/scheduler'
-import { hold } from '../src/index'
+import { hold } from '../src'
+// eslint-disable-next-line no-unused-vars
+import { Scheduler, Sink, Stream } from '@most/types'
 
-const collect = (stream, scheduler) => {
-  const eventValues = []
+const collect = <A>(stream: Stream<A>, scheduler: Scheduler) => {
+  const eventValues: A[] = []
   const collectStream = tap(x => eventValues.push(x), stream)
   return runEffects(collectStream, scheduler)
     .then(() => eventValues)
 }
 
-const verifyHold = f => {
+const verifyHold = (f: (stream: Stream<number>, scheduler: Scheduler) => Promise<unknown>) => {
   const scheduler = newDefaultScheduler()
   const s = hold(mergeArray([at(0, 0), at(10, 1), at(20, 2)]))
 
@@ -23,7 +25,7 @@ const verifyHold = f => {
   return Promise.all([p0, p1])
 }
 
-const delayPromise = time => new Promise(resolve => setTimeout(resolve, time))
+const delayPromise = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
 
 describe('hold', () => {
   it('should deliver most recent event to new observer', () => {
@@ -45,13 +47,13 @@ describe('hold', () => {
   it('should deliver most recent event from hot source to late observers ', () => {
     const scheduler = newDefaultScheduler()
     class HotProducer {
-      run (sink, scheduler) {
+      run (sink: Sink<string>, scheduler: Scheduler) {
         return asap(propagateEventTask('foo', sink), scheduler)
       }
     }
     const source = hold(new HotProducer())
-    const events = []
-    const collectSink = {
+    const events: string[] = []
+    const collectSink: Sink<string> = {
       event: (time, value) => events.push(value),
       error: e => {
         throw e
@@ -63,7 +65,7 @@ describe('hold', () => {
     return delayPromise(10).then(() => {
       const s2 = source.run(collectSink, scheduler)
       return delayPromise(10).then(() => {
-        s1.dispose();
+        s1.dispose()
         s2.dispose()
         return eq(events, ['foo', 'foo'])
       })

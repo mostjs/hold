@@ -1,0 +1,10 @@
+{
+  "threshold": 0,
+  "reporters": [
+    "console"
+  ],
+  "absolute": true,
+  "format": [
+    "typescript"
+  ]
+}
