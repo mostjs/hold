@@ -63,8 +63,8 @@ describe('hold', () => {
     })
   })
 
-  it('should deliver most recent event from hot source to late observers ', () => {
-    const source = hold(new class {
+  describe('late observers', () => {
+    class Source {
       run (sink, scheduler) {
         if (!this.sent) {
           // this imitates any hot source which emits the first value and then hangs so that it doesn't resend the value on rerun
@@ -75,17 +75,28 @@ describe('hold', () => {
           dispose () {}
         }
       }
-    }())
-    const events = []
-    const sink = createCollectSink(events)
-    const s1 = source.run(sink, scheduler)
-    return delayPromise(20).then(() => {
-      const s2 = source.run(sink, scheduler)
+    }
+
+    const test = (source, expected) => {
+      const events = []
+      const sink = createCollectSink(events)
+      const s1 = source.run(sink, scheduler)
       return delayPromise(10).then(() => {
-        s1.dispose()
-        s2.dispose()
-        return eq(events, ['foo', 'foo'])
+        const s2 = source.run(sink, scheduler)
+        return delayPromise(10).then(() => {
+          s1.dispose()
+          s2.dispose()
+          return eq(events, expected)
+        })
       })
+    }
+
+    it('should emit a single event without hold for two observers', () => {
+      return test(new Source(), ['foo'])
+    })
+
+    it('should emit two events with hold for two observers', () => {
+      return test(hold(new Source()), ['foo', 'foo'])
     })
   })
 
