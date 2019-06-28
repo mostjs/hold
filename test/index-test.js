@@ -11,9 +11,9 @@ import {
   scan,
   take,
   tap,
-  now
+  propagateEventTask
 } from '@most/core'
-import { newDefaultScheduler, delay } from '@most/scheduler'
+import { newDefaultScheduler, delay, asap } from '@most/scheduler'
 import { hold } from '../src/index'
 
 const collect = (stream, scheduler) => {
@@ -23,8 +23,9 @@ const collect = (stream, scheduler) => {
     .then(() => eventValues)
 }
 
+const scheduler = newDefaultScheduler()
+
 const verifyHold = f => {
-  const scheduler = newDefaultScheduler()
   const s = hold(mergeArray([at(0, 0), at(10, 1), at(20, 2)]))
 
   const p0 = collect(take(1, s), scheduler)
@@ -34,6 +35,14 @@ const verifyHold = f => {
 
   return Promise.all([p0, p1])
 }
+
+const createCollectSink = out => ({
+  event: (time, value) => out.push(value),
+  error: e => {
+    throw e
+  },
+  end: () => {}
+})
 
 const delayPromise = time => new Promise(resolve => setTimeout(resolve, time))
 
@@ -55,25 +64,27 @@ describe('hold', () => {
   })
 
   it('should deliver most recent event from hot source to late observers ', () => {
-    const scheduler = newDefaultScheduler()
-    const value = 'foo'
-    const source = hold(now(value))
+    const source = hold(new class {
+      run (sink, scheduler) {
+        if (!this.sent) {
+          // this imitates any hot source which emits the first value and then hangs so that it doesn't resend the value on rerun
+          this.sent = true
+          return asap(propagateEventTask('foo', sink), scheduler)
+        }
+        return {
+          dispose () {}
+        }
+      }
+    }())
     const events = []
-    const collectSink = {
-      event: (time, value) => events.push(value),
-      error: e => {
-        throw e
-      },
-      end: () => {}
-    }
-    const s1 = source.run(collectSink, scheduler)
-
-    return delayPromise(10).then(() => {
-      const s2 = source.run(collectSink, scheduler)
+    const sink = createCollectSink(events)
+    const s1 = source.run(sink, scheduler)
+    return delayPromise(20).then(() => {
+      const s2 = source.run(sink, scheduler)
       return delayPromise(10).then(() => {
         s1.dispose()
         s2.dispose()
-        return eq(events, [value, value])
+        return eq(events, ['foo', 'foo'])
       })
     })
   })
