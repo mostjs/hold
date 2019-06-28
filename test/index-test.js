@@ -1,7 +1,19 @@
 import { describe, it } from 'mocha'
 import { eq, assert } from '@briancavalier/assert'
-import { at, mergeArray, merge, join, map, periodic, runEffects, scan, take, tap, propagateEventTask } from '@most/core'
-import { newDefaultScheduler, delay, asap } from '@most/scheduler'
+import {
+  at,
+  mergeArray,
+  merge,
+  join,
+  map,
+  periodic,
+  runEffects,
+  scan,
+  take,
+  tap,
+  now
+} from '@most/core'
+import { newDefaultScheduler, delay } from '@most/scheduler'
 import { hold } from '../src/index'
 
 const collect = (stream, scheduler) => {
@@ -44,12 +56,8 @@ describe('hold', () => {
 
   it('should deliver most recent event from hot source to late observers ', () => {
     const scheduler = newDefaultScheduler()
-    class HotProducer {
-      run (sink, scheduler) {
-        return asap(propagateEventTask('foo', sink), scheduler)
-      }
-    }
-    const source = hold(new HotProducer())
+    const value = 'foo'
+    const source = hold(now(value))
     const events = []
     const collectSink = {
       event: (time, value) => events.push(value),
@@ -63,9 +71,9 @@ describe('hold', () => {
     return delayPromise(10).then(() => {
       const s2 = source.run(collectSink, scheduler)
       return delayPromise(10).then(() => {
-        s1.dispose();
+        s1.dispose()
         s2.dispose()
-        return eq(events, ['foo', 'foo'])
+        return eq(events, [value, value])
       })
     })
   })
