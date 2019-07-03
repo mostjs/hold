@@ -23,9 +23,8 @@ const collect = (stream, scheduler) => {
     .then(() => eventValues)
 }
 
-const scheduler = newDefaultScheduler()
-
 const verifyHold = f => {
+  const scheduler = newDefaultScheduler()
   const s = hold(mergeArray([at(0, 0), at(10, 1), at(20, 2)]))
 
   const p0 = collect(take(1, s), scheduler)
@@ -78,6 +77,7 @@ describe('hold', () => {
     }
 
     const test = (source, expected) => {
+      const scheduler = newDefaultScheduler()
       const events = []
       const sink = createCollectSink(events)
       const s1 = source.run(sink, scheduler)
