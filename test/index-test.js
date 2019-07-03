@@ -1,8 +1,19 @@
-// @flow
 import { describe, it } from 'mocha'
 import { eq, assert } from '@briancavalier/assert'
-import { at, mergeArray, merge, join, map, periodic, runEffects, scan, take, tap } from '@most/core'
-import { newDefaultScheduler, delay } from '@most/scheduler'
+import {
+  at,
+  mergeArray,
+  merge,
+  join,
+  map,
+  periodic,
+  runEffects,
+  scan,
+  take,
+  tap,
+  propagateEventTask
+} from '@most/core'
+import { newDefaultScheduler, delay, asap } from '@most/scheduler'
 import { hold } from '../src/index'
 
 const collect = (stream, scheduler) => {
@@ -24,6 +35,16 @@ const verifyHold = f => {
   return Promise.all([p0, p1])
 }
 
+const createCollectSink = out => ({
+  event: (time, value) => out.push(value),
+  error: e => {
+    throw e
+  },
+  end: () => {}
+})
+
+const delayPromise = time => new Promise(resolve => setTimeout(resolve, time))
+
 describe('hold', () => {
   it('should deliver most recent event to new observer', () => {
     return verifyHold((stream, scheduler) => {
@@ -38,6 +59,44 @@ describe('hold', () => {
           dispose () {}
         }, scheduler)
       }).then(events => eq([0, 1, 2], events))
+    })
+  })
+
+  describe('late observers', () => {
+    class Source {
+      run (sink, scheduler) {
+        if (!this.sent) {
+          // this imitates any hot source which emits the first value and then hangs so that it doesn't resend the value on rerun
+          this.sent = true
+          return asap(propagateEventTask('foo', sink), scheduler)
+        }
+        return {
+          dispose () {}
+        }
+      }
+    }
+
+    const test = (source, expected) => {
+      const scheduler = newDefaultScheduler()
+      const events = []
+      const sink = createCollectSink(events)
+      const s1 = source.run(sink, scheduler)
+      return delayPromise(10).then(() => {
+        const s2 = source.run(sink, scheduler)
+        return delayPromise(10).then(() => {
+          s1.dispose()
+          s2.dispose()
+          return eq(events, expected)
+        })
+      })
+    }
+
+    it('should emit a single event without hold for two observers', () => {
+      return test(new Source(), ['foo'])
+    })
+
+    it('should emit two events with hold for two observers', () => {
+      return test(hold(new Source()), ['foo', 'foo'])
     })
   })
 
