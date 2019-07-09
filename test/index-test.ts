@@ -1,10 +1,22 @@
 import { describe, it } from 'mocha'
 import { eq, assert } from '@briancavalier/assert'
-import { at, mergeArray, merge, join, map, periodic, runEffects, scan, take, tap, propagateEventTask } from '@most/core'
 import { newDefaultScheduler, delay, asap } from '@most/scheduler'
 import { hold } from '../src'
 // eslint-disable-next-line no-unused-vars
 import { Scheduler, Sink, Stream, Time } from '@most/types'
+import {
+  at,
+  mergeArray,
+  merge,
+  join,
+  map,
+  periodic,
+  runEffects,
+  scan,
+  take,
+  tap,
+  propagateEventTask
+} from '@most/core'
 
 const collect = <A>(stream: Stream<A>, scheduler: Scheduler) => {
   const eventValues: A[] = []
