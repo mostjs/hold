@@ -4,7 +4,7 @@ import { at, mergeArray, merge, join, map, periodic, runEffects, scan, take, tap
 import { newDefaultScheduler, delay, asap } from '@most/scheduler'
 import { hold } from '../src'
 // eslint-disable-next-line no-unused-vars
-import { Scheduler, Sink, Stream } from '@most/types'
+import { Scheduler, Sink, Stream, Time } from '@most/types'
 
 const collect = <A>(stream: Stream<A>, scheduler: Scheduler) => {
   const eventValues: A[] = []
@@ -25,6 +25,14 @@ const verifyHold = (f: (stream: Stream<number>, scheduler: Scheduler) => Promise
   return Promise.all([p0, p1])
 }
 
+const createCollectSink = <A>(out: A[]) => ({
+  event: (time: Time, value: A) => out.push(value),
+  error: (_time: Time, e: Error) => {
+    throw e
+  },
+  end: () => {}
+})
+
 const delayPromise = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
 
 describe('hold', () => {
@@ -44,31 +52,42 @@ describe('hold', () => {
     })
   })
 
-  it('should deliver most recent event from hot source to late observers ', () => {
-    const scheduler = newDefaultScheduler()
-    class HotProducer {
+  describe('late observers ', () => {
+    class Source {
+      private sent = false;
       run (sink: Sink<string>, scheduler: Scheduler) {
-        return asap(propagateEventTask('foo', sink), scheduler)
+        if (!this.sent) {
+          this.sent = true
+          return asap(propagateEventTask('foo', sink), scheduler)
+        }
+        return {
+          dispose () {}
+        }
       }
     }
-    const source = hold(new HotProducer())
-    const events: string[] = []
-    const collectSink: Sink<string> = {
-      event: (time, value) => events.push(value),
-      error: e => {
-        throw e
-      },
-      end: () => {}
-    }
-    const s1 = source.run(collectSink, scheduler)
 
-    return delayPromise(10).then(() => {
-      const s2 = source.run(collectSink, scheduler)
+    const test = <A>(source: Stream<A>, expected: A[]) => {
+      const scheduler = newDefaultScheduler()
+      const events: A[] = []
+      const sink = createCollectSink(events)
+      const s1 = source.run(sink, scheduler)
+
       return delayPromise(10).then(() => {
-        s1.dispose()
-        s2.dispose()
-        return eq(events, ['foo', 'foo'])
+        const s2 = source.run(sink, scheduler)
+        return delayPromise(10).then(() => {
+          s1.dispose()
+          s2.dispose()
+          return eq(events, expected)
+        })
       })
+    }
+
+    it('should emit a single event without hold for two observers', () => {
+      return test(new Source(), ['foo'])
+    })
+
+    it('should emit two events with hold for two observers', () => {
+      return test(hold(new Source()), ['foo', 'foo'])
     })
   })
 
