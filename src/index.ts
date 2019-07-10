@@ -55,7 +55,7 @@ class Hold<A> extends MulticastSource<A> implements Stream<A>, Disposable, Sink<
     }
   }
 
-  private _hasValue (value?: A): boolean {
+  private _hasValue (): boolean {
     return this.held !== undefined
   }
 

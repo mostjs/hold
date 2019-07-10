@@ -38,7 +38,7 @@ const verifyHold = <A>(f: (stream: Stream<number>, scheduler: Scheduler) => Prom
 }
 
 const createCollectSink = <A>(out: A[]): Sink<A> => ({
-  event: (time: Time, value: A) => out.push(value),
+  event: (_time: Time, value: A) => out.push(value),
   error: (_time: Time, e: Error) => {
     throw e
   },
@@ -52,10 +52,10 @@ describe('hold', () => {
     return verifyHold((stream, scheduler) => {
       return new Promise((resolve, reject) => {
         delay(5, {
-          run (t) {
+          run () {
             resolve(collect(stream, scheduler))
           },
-          error (t, e) {
+          error (_t, e) {
             reject(e)
           },
           dispose () {}
@@ -107,12 +107,12 @@ describe('hold', () => {
     return verifyHold((stream, scheduler) => {
       return new Promise((resolve, reject) => {
         delay(5, {
-          run (t) {
+          run () {
             let called = false
             runEffects(tap(_ => { called = true }, stream), scheduler)
             resolve(assert(!called))
           },
-          error (t, e) {
+          error (_t, e) {
             reject(e)
           },
           dispose () {}
