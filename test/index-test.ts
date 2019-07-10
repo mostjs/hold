@@ -18,14 +18,14 @@ import {
   propagateEventTask
 } from '@most/core'
 
-const collect = <A>(stream: Stream<A>, scheduler: Scheduler) => {
+const collect = <A>(stream: Stream<A>, scheduler: Scheduler): Promise<ReadonlyArray<A>> => {
   const eventValues: A[] = []
   const collectStream = tap(x => eventValues.push(x), stream)
   return runEffects(collectStream, scheduler)
     .then(() => eventValues)
 }
 
-const verifyHold = (f: (stream: Stream<number>, scheduler: Scheduler) => Promise<unknown>) => {
+const verifyHold = <A>(f: (stream: Stream<number>, scheduler: Scheduler) => Promise<A>): Promise<[ReadonlyArray<number>, A]> => {
   const scheduler = newDefaultScheduler()
   const s = hold(mergeArray([at(0, 0), at(10, 1), at(20, 2)]))
 
@@ -37,7 +37,7 @@ const verifyHold = (f: (stream: Stream<number>, scheduler: Scheduler) => Promise
   return Promise.all([p0, p1])
 }
 
-const createCollectSink = <A>(out: A[]) => ({
+const createCollectSink = <A>(out: A[]): Sink<A> => ({
   event: (time: Time, value: A) => out.push(value),
   error: (_time: Time, e: Error) => {
     throw e
@@ -78,7 +78,7 @@ describe('hold', () => {
       }
     }
 
-    const test = <A>(source: Stream<A>, expected: A[]) => {
+    const test = <A>(source: Stream<A>, expected: A[]): Promise<ReadonlyArray<A>> => {
       const scheduler = newDefaultScheduler()
       const events: A[] = []
       const sink = createCollectSink(events)
