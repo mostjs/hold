@@ -1,5 +1,9 @@
 import { describe, it } from 'mocha'
 import { eq, assert } from '@briancavalier/assert'
+import { newDefaultScheduler, delay, asap } from '@most/scheduler'
+import { hold } from '../src'
+// eslint-disable-next-line no-unused-vars
+import { Scheduler, Sink, Stream, Time } from '@most/types'
 import {
   at,
   mergeArray,
@@ -13,17 +17,15 @@ import {
   tap,
   propagateEventTask
 } from '@most/core'
-import { newDefaultScheduler, delay, asap } from '@most/scheduler'
-import { hold } from '../src/index'
 
-const collect = (stream, scheduler) => {
-  const eventValues = []
+const collect = <A>(stream: Stream<A>, scheduler: Scheduler): Promise<ReadonlyArray<A>> => {
+  const eventValues: A[] = []
   const collectStream = tap(x => eventValues.push(x), stream)
   return runEffects(collectStream, scheduler)
     .then(() => eventValues)
 }
 
-const verifyHold = f => {
+const verifyHold = <A>(f: (stream: Stream<number>, scheduler: Scheduler) => Promise<A>): Promise<[ReadonlyArray<number>, A]> => {
   const scheduler = newDefaultScheduler()
   const s = hold(mergeArray([at(0, 0), at(10, 1), at(20, 2)]))
 
@@ -35,25 +37,25 @@ const verifyHold = f => {
   return Promise.all([p0, p1])
 }
 
-const createCollectSink = out => ({
-  event: (time, value) => out.push(value),
-  error: e => {
+const createCollectSink = <A>(out: A[]): Sink<A> => ({
+  event: (_time: Time, value: A) => out.push(value),
+  error: (_time: Time, e: Error) => {
     throw e
   },
   end: () => {}
 })
 
-const delayPromise = time => new Promise(resolve => setTimeout(resolve, time))
+const delayPromise = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
 
 describe('hold', () => {
   it('should deliver most recent event to new observer', () => {
     return verifyHold((stream, scheduler) => {
       return new Promise((resolve, reject) => {
         delay(5, {
-          run (t) {
+          run () {
             resolve(collect(stream, scheduler))
           },
-          error (t, e) {
+          error (_t, e) {
             reject(e)
           },
           dispose () {}
@@ -62,11 +64,11 @@ describe('hold', () => {
     })
   })
 
-  describe('late observers', () => {
+  describe('late observers ', () => {
     class Source {
-      run (sink, scheduler) {
+      private sent = false;
+      run (sink: Sink<string>, scheduler: Scheduler) {
         if (!this.sent) {
-          // this imitates any hot source which emits the first value and then hangs so that it doesn't resend the value on rerun
           this.sent = true
           return asap(propagateEventTask('foo', sink), scheduler)
         }
@@ -76,11 +78,12 @@ describe('hold', () => {
       }
     }
 
-    const test = (source, expected) => {
+    const test = <A>(source: Stream<A>, expected: A[]): Promise<ReadonlyArray<A>> => {
       const scheduler = newDefaultScheduler()
-      const events = []
+      const events: A[] = []
       const sink = createCollectSink(events)
       const s1 = source.run(sink, scheduler)
+
       return delayPromise(10).then(() => {
         const s2 = source.run(sink, scheduler)
         return delayPromise(10).then(() => {
@@ -104,12 +107,12 @@ describe('hold', () => {
     return verifyHold((stream, scheduler) => {
       return new Promise((resolve, reject) => {
         delay(5, {
-          run (t) {
+          run () {
             let called = false
             runEffects(tap(_ => { called = true }, stream), scheduler)
             resolve(assert(!called))
           },
-          error (t, e) {
+          error (_t, e) {
             reject(e)
           },
           dispose () {}
