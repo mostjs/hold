@@ -118,7 +118,10 @@ describe('hold', () => {
         ), hos)
       )
 
-      return test(flat, ['foo', 'foo foo'])
+      const scheduler = newDefaultScheduler()
+      return collect(flat, scheduler).then(
+        events => eq(['foo', 'foo foo'], events)
+      )
     })
   })
 
