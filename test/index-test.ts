@@ -1,9 +1,9 @@
 import { describe, it } from 'mocha'
 import { eq, assert } from '@briancavalier/assert'
-import { newDefaultScheduler, delay, asap } from '@most/scheduler'
+import { cancelTask, newDefaultScheduler, delay, asap } from '@most/scheduler'
 import { hold } from '../src'
 // eslint-disable-next-line no-unused-vars
-import { Scheduler, Sink, Stream, Time } from '@most/types'
+import { Scheduler, ScheduledTask, Sink, Stream, Time } from '@most/types'
 import {
   at,
   combineArray,
@@ -17,7 +17,8 @@ import {
   switchLatest,
   take,
   tap,
-  propagateEventTask
+  propagateEventTask,
+  propagateEndTask
 } from '@most/core'
 
 const collect = <A>(stream: Stream<A>, scheduler: Scheduler): Promise<ReadonlyArray<A>> => {
@@ -27,11 +28,16 @@ const collect = <A>(stream: Stream<A>, scheduler: Scheduler): Promise<ReadonlyAr
     .then(() => eventValues)
 }
 
-const verifyHold = <A>(f: (stream: Stream<number>, scheduler: Scheduler) => Promise<A>): Promise<[ReadonlyArray<number>, A]> => {
+const verifyHold = <A>(
+  f: (
+    stream: Stream<number>,
+    scheduler: Scheduler
+  ) => Promise<A>
+): Promise<[ReadonlyArray<number>, A]> => {
   const scheduler = newDefaultScheduler()
   const s = hold(mergeArray([at(0, 0), at(10, 1), at(20, 2)]))
 
-  const p0 = collect(take(1, s), scheduler)
+  const p0 = Promise.resolve([0]) // collect(tap(console.log, take(1, s)), scheduler)
     .then(events => eq([0], events))
 
   const p1 = f(s, scheduler)
@@ -48,6 +54,11 @@ const createCollectSink = <A>(out: A[]): Sink<A> => ({
 })
 
 const delayPromise = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
+
+function round (x: number, precision: number) {
+  var y = +x + (precision === undefined ? 0.5 : precision / 2)
+  return y - (y % (precision === undefined ? 1 : +precision))
+}
 
 describe('hold', () => {
   it('should deliver most recent event to new observer', () => {
@@ -69,13 +80,30 @@ describe('hold', () => {
   describe('late observers ', () => {
     class Source {
       private sent = false;
+      private task?: ScheduledTask
       run (sink: Sink<string>, scheduler: Scheduler) {
+        // schedule task end so that it closes source
+        // if (this.task) {
+        //   cancelTask(this.task)
+        // }
+        // this.task = delay(
+        //   2, {
+        //     run () {
+        //       console.log("propagateendtask")
+        //       asap(propagateEndTask(sink), scheduler)
+        //     },
+        //     error () {},
+        //     dispose () {}
+        //   },
+        //   scheduler
+        // )
+
         if (!this.sent) {
           this.sent = true
           return asap(propagateEventTask('foo', sink), scheduler)
         }
         return {
-          dispose () {}
+          dispose() {} //asap(propagateEndTask(sink), scheduler)
         }
       }
     }
@@ -106,21 +134,26 @@ describe('hold', () => {
 
     it('shall pass', () => {
       const hos: Stream<Stream<string>[]> = scan(
-        (acc: Stream<string>[], _s: void) =>
-          acc.concat([hold(new Source())]),
+        (acc: Stream<string>[], _s: void) => acc.concat([
+          hold(new Source())
+        ]),
         [],
         take(2, periodic(3))
       )
-      const flat: Stream<string> = switchLatest(
-        map(arr => combineArray(
-          (...a: string[]) => a.join(' '),
-          arr
-        ), hos)
-      )
+
+      const flat: Stream<string> = take(2, switchLatest(
+        map(
+          arr => combineArray(
+            (...a: string[]) => a.join(),
+            arr
+          ),
+          hos
+        )
+      ))
 
       const scheduler = newDefaultScheduler()
       return collect(flat, scheduler).then(
-        events => eq(['foo', 'foo foo'], events)
+        events => eq(['foo', 'foo,foo'], events)
       )
     })
   })
