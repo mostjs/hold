@@ -12,10 +12,6 @@ class Hold<A> extends MulticastSource<A> implements Stream<A>, Disposable, Sink<
   private held?: HeldValue<A> = undefined
   private task?: ScheduledTask = undefined
 
-  constructor (stream: Stream<A>) {
-    super(stream)
-  }
-
   run (sink: Sink<A>, scheduler: Scheduler): Disposable {
     if (this._hasValue()) {
       this._scheduleFlush(sink, scheduler)

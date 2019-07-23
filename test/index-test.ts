@@ -1,9 +1,9 @@
 import { describe, it } from 'mocha'
 import { eq, assert } from '@briancavalier/assert'
-import { cancelTask, newDefaultScheduler, delay, asap } from '@most/scheduler'
+import { newDefaultScheduler, delay, asap } from '@most/scheduler'
 import { hold } from '../src'
 // eslint-disable-next-line no-unused-vars
-import { Scheduler, ScheduledTask, Sink, Stream, Time } from '@most/types'
+import { Scheduler, Sink, Stream, Time } from '@most/types'
 import {
   at,
   combineArray,
@@ -17,8 +17,7 @@ import {
   switchLatest,
   take,
   tap,
-  propagateEventTask,
-  propagateEndTask
+  propagateEventTask
 } from '@most/core'
 
 const collect = <A>(stream: Stream<A>, scheduler: Scheduler): Promise<ReadonlyArray<A>> => {
@@ -55,11 +54,6 @@ const createCollectSink = <A>(out: A[]): Sink<A> => ({
 
 const delayPromise = (time: number): Promise<void> => new Promise(resolve => setTimeout(resolve, time))
 
-function round (x: number, precision: number) {
-  var y = +x + (precision === undefined ? 0.5 : precision / 2)
-  return y - (y % (precision === undefined ? 1 : +precision))
-}
-
 describe('hold', () => {
   it('should deliver most recent event to new observer', () => {
     return verifyHold((stream, scheduler) => {
@@ -80,30 +74,13 @@ describe('hold', () => {
   describe('late observers ', () => {
     class Source {
       private sent = false;
-      private task?: ScheduledTask
       run (sink: Sink<string>, scheduler: Scheduler) {
-        // schedule task end so that it closes source
-        // if (this.task) {
-        //   cancelTask(this.task)
-        // }
-        // this.task = delay(
-        //   2, {
-        //     run () {
-        //       console.log("propagateendtask")
-        //       asap(propagateEndTask(sink), scheduler)
-        //     },
-        //     error () {},
-        //     dispose () {}
-        //   },
-        //   scheduler
-        // )
-
         if (!this.sent) {
           this.sent = true
           return asap(propagateEventTask('foo', sink), scheduler)
         }
         return {
-          dispose() {} //asap(propagateEndTask(sink), scheduler)
+          dispose () {} // asap(propagateEndTask(sink), scheduler)
         }
       }
     }
