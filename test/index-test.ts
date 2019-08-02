@@ -36,7 +36,7 @@ const verifyHold = <A>(
   const scheduler = newDefaultScheduler()
   const s = hold(mergeArray([at(0, 0), at(10, 1), at(20, 2)]))
 
-  const p0 = Promise.resolve([0]) // collect(tap(console.log, take(1, s)), scheduler)
+  const p0 = collect(take(1, s), scheduler)
     .then(events => eq([0], events))
 
   const p1 = f(s, scheduler)
