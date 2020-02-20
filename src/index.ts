@@ -2,12 +2,14 @@ import { Stream, Sink, ScheduledTask, Time, Scheduler, Disposable } from '@most/
 import { MulticastSource } from '@most/core'
 import { asap, cancelTask } from '@most/scheduler'
 
-export const hold = <A>(stream: Stream<A>): Stream<A> =>
+export interface MulticastStream<A> extends Stream<A> {}
+
+export const hold = <A>(stream: Stream<A>): MulticastStream<A> =>
   new Hold(stream)
 
 type HeldValue<A> = { value: A }
 
-class Hold<A> extends MulticastSource<A> implements Stream<A>, Disposable, Sink<A> {
+class Hold<A> extends MulticastSource<A> implements MulticastStream<A>, Disposable, Sink<A> {
   private pendingSinks: Sink<A>[] = []
   private held?: HeldValue<A> = undefined
   private task?: ScheduledTask = undefined
