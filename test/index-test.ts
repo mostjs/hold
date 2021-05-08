@@ -6,6 +6,7 @@ import { hold } from '../src'
 import { Scheduler, Sink, Stream, Time } from '@most/types'
 import {
   at,
+  combineArray,
   mergeArray,
   merge,
   join,
@@ -13,6 +14,7 @@ import {
   periodic,
   runEffects,
   scan,
+  switchLatest,
   take,
   tap,
   propagateEventTask
@@ -25,7 +27,12 @@ const collect = <A>(stream: Stream<A>, scheduler: Scheduler): Promise<ReadonlyAr
     .then(() => eventValues)
 }
 
-const verifyHold = <A>(f: (stream: Stream<number>, scheduler: Scheduler) => Promise<A>): Promise<[ReadonlyArray<number>, A]> => {
+const verifyHold = <A>(
+  f: (
+    stream: Stream<number>,
+    scheduler: Scheduler
+  ) => Promise<A>
+): Promise<[ReadonlyArray<number>, A]> => {
   const scheduler = newDefaultScheduler()
   const s = hold(mergeArray([at(0, 0), at(10, 1), at(20, 2)]))
 
@@ -73,7 +80,7 @@ describe('hold', () => {
           return asap(propagateEventTask('foo', sink), scheduler)
         }
         return {
-          dispose () {}
+          dispose () {} // asap(propagateEndTask(sink), scheduler)
         }
       }
     }
@@ -100,6 +107,31 @@ describe('hold', () => {
 
     it('should emit two events with hold for two observers', () => {
       return test(hold(new Source()), ['foo', 'foo'])
+    })
+
+    it('shall pass', () => {
+      const hos: Stream<Stream<string>[]> = scan(
+        (acc: Stream<string>[], _s: void) => acc.concat([
+          hold(new Source())
+        ]),
+        [],
+        take(2, periodic(3))
+      )
+
+      const flat: Stream<string> = take(2, switchLatest(
+        map(
+          arr => combineArray(
+            (...a: string[]) => a.join(),
+            arr
+          ),
+          hos
+        )
+      ))
+
+      const scheduler = newDefaultScheduler()
+      return collect(flat, scheduler).then(
+        events => eq(['foo', 'foo,foo'], events)
+      )
     })
   })
 

@@ -13,7 +13,7 @@ class Hold<A> extends MulticastSource<A> implements Stream<A>, Disposable, Sink<
   private task?: ScheduledTask = undefined
 
   run (sink: Sink<A>, scheduler: Scheduler): Disposable {
-    if (this._shouldScheduleFlush()) {
+    if (this._hasValue()) {
       this._scheduleFlush(sink, scheduler)
     }
 
@@ -59,13 +59,13 @@ class Hold<A> extends MulticastSource<A> implements Stream<A>, Disposable, Sink<
     return this.held !== undefined
   }
 
-  private _hasSinks (): boolean {
-    return this.sinks.length > 0
-  }
+  // private _hasSinks (): boolean {
+  //   return this.sinks.length > 0
+  // }
 
-  private _shouldScheduleFlush (): boolean {
-    return this._hasValue() && this._hasSinks()
-  }
+  // private _shouldScheduleFlush (): boolean {
+  //   return this._hasValue() && this._hasSinks()
+  // }
 
   private _scheduleFlush (sink: Sink<A>, scheduler: Scheduler): void {
     this.pendingSinks.push(sink)
